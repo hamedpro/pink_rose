@@ -1,48 +1,64 @@
 table.custom_border {
-	border: 1px solid black;
+  border: 1px solid black;
 }
 table.custom_border td {
-	border: 1px solid black;
-	padding: 0px 10px 0px 10px;
+  border: 1px solid black;
+  padding: 0px 10px 0px 10px;
 }
 body,
-html ,
-#root{
-	height: 100%;
-	width: 100%;
-	overflow-x: hidden;
-	overflow-y: auto;
+html,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .fa * {
-	direction: rtl;
+  direction: rtl;
 }
 @keyframes custom_animation {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 0.9;
-		transform: translate(-120%,-50%);
-		position: absolute;
-	}
-	
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.9;
+    transform: translate(-120%, -50%);
+    position: absolute;
+  }
 }
 .hamedpro8977_list_item {
-	position: relative;
+  position: relative;
 }
 .hamedpro8977_icon {
-	top: 50%;
-	opacity: 0;
-	left: 100%;
-	transform:  translateY(-50%);
-	position: absolute;
+  top: 50%;
+  opacity: 0;
+  left: 100%;
+  transform: translateY(-50%);
+  position: absolute;
 }
 .hamedpro8977_list_item:hover .hamedpro8977_icon {
-	animation-name: custom_animation;
-	animation-duration: 400ms;
-	animation-fill-mode: forwards;
+  animation-name: custom_animation;
+  animation-duration: 400ms;
+  animation-fill-mode: forwards;
 
-	transform: translateY(-50%);
-	position: absolute;
+  transform: translateY(-50%);
+  position: absolute;
+}
+/*comments-container-box temp styles*/
+.comments-box-container {
+  background-color: aqua;
+  opacity: 0.8;
+  border-radius: 1em;
+  padding: 1em;
+}
+.comment-container {
+  background-color: blueviolet;
+  display: flex;
+}
+.comment-toolbar-container {
+  margin-left: auto;
+  width: 100px;
+  display: flex;
+  justify-content: space-between;
 }
