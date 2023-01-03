@@ -1,5 +1,3 @@
-import { memo } from "react";
-
 const Comment = ({ setEditId, commentId, text, deleteHandler }) => {
   return (
     <div className='comment-container'>

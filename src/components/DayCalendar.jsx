@@ -1,10 +1,12 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { get_calendar_categories, get_tasks, get_user_events } from "../../api/client";
 import ObjectBox from "./ObjectBox";
-import { month_names, timestamp_filled_range } from "../common";
+import { month_names, timestamp_filled_range } from "../../common_helpers.js";
 import { Section } from "./Section";
+import { is_there_any_conflict } from "../../common_helpers.js";
 export const DayCalendar = () => {
+	var nav = useNavigate()
 	var { user_id } = useParams();
 	var [day_tasks, set_day_tasks] = useState(null);
 	var [day_events, set_day_events] = useState(null);
@@ -33,8 +35,12 @@ export const DayCalendar = () => {
 		var events = await get_user_events({ user_id });
 		set_day_tasks(
 			tasks
-				.filter(
-					(task) => task.start_date >= start_timestamp && task.end_date <= end_timestamp
+				.filter((task) =>
+					is_there_any_conflict({
+						start: start_timestamp,
+						end: end_timestamp,
+						items: [task],
+					})
 				)
 				.map((i) => {
 					return {
@@ -46,9 +52,12 @@ export const DayCalendar = () => {
 		);
 		set_day_events(
 			events
-				.filter(
-					(event) =>
-						event.start_date >= start_timestamp && event.end_date <= end_timestamp
+				.filter((event) =>
+					is_there_any_conflict({
+						start: start_timestamp,
+						end: end_timestamp,
+						items: [event],
+					})
 				)
 				.map((i) => {
 					return {
@@ -59,6 +68,17 @@ export const DayCalendar = () => {
 				})
 		);
 		set_calendar_categories(await get_calendar_categories({ user_id }));
+	}
+	function open_item_page(item) {
+		if (item.value === null) {
+			alert('there is not any task or event where you clicked')
+			return 
+		}
+		if (item.type_label === "tasks") {
+			nav(`/users/${item.creator_user_id}/workspaces/${item.workspace_id}/workflows/${item.workflow_id}/tasks/${item._id}`)
+		} else if (item.type_label) {
+			nav(`/users/${item.creator_user_id}/calendar/events/${item._id}`)
+		}
 	}
 	useEffect(() => {
 		get_data();
@@ -98,8 +118,8 @@ export const DayCalendar = () => {
 
 				<Section title="bars">
 					{[
-						{ start: start_timestamp, end: start_timestamp + 12 * 3600 * 1000 },
-						{ start: start_timestamp + 12 * 3600 * 1000, end: end_timestamp },
+						{ start: start_timestamp, end: start_timestamp + 12 * 3600 * 1000, range_label : "day_half_1"},
+						{ start: start_timestamp + 12 * 3600 * 1000, end: end_timestamp, range_label : "day_half_2" },
 					].map((object, object_index) => {
 						return (
 							<div className="flex" key={object_index}>
@@ -120,10 +140,11 @@ export const DayCalendar = () => {
 										style={{ height: "30px" }}
 									></div>
 									{[
-										{ items: JSON.parse(JSON.stringify(day_tasks)), ...object },
+										{ items: JSON.parse(JSON.stringify(day_tasks)), ...object ,type_label : 'tasks'},
 										{
 											items: JSON.parse(JSON.stringify(day_events)),
 											...object,
+											type_label : 'events'
 										},
 									].map((type, type_index) => {
 										return (
@@ -132,7 +153,7 @@ export const DayCalendar = () => {
 												className="w-full bg-stone-100 relative"
 												style={{ height: "30px" }}
 											>
-												{timestamp_filled_range({ ...type }).map(
+												{timestamp_filled_range({ ...type }).map(item => {return {...item,type_label : type.type_label}}).map(
 													(item, index, array) => {
 														return (
 															<div
@@ -141,8 +162,8 @@ export const DayCalendar = () => {
 																	position: "absolute",
 																	left: item.start_percent + "%",
 																	width:
-																		(item.end_percent -
-																		item.start_percent) +
+																		item.end_percent -
+																		item.start_percent +
 																		"%",
 																	height: "100%",
 																	backgroundColor:
@@ -152,7 +173,10 @@ export const DayCalendar = () => {
 																					(i) =>
 																						i._id ==
 																						item.category_id
-																			  ).color,
+																			).color,
+																	overflow: "hidden",
+																	whiteSpace: "nowrap",
+																	textOverflow : "ellipsis"
 																}}
 																className={`${
 																	index !== 0 ? "border-l" : ""
@@ -160,8 +184,11 @@ export const DayCalendar = () => {
 																	index !== array.length - 1
 																		? "border-r"
 																		: ""
-																} border-stone-400`}
-															></div>
+																	} border-stone-400 flex justify-center items-center`}
+																onClick={()=>open_item_page(item)}
+															>
+																{item.title}
+															</div>
 														);
 													}
 												)}

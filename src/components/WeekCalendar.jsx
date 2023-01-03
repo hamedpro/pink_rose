@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { get_start_and_end } from "../common";
+import { get_start_and_end } from "../../common_helpers.js";
 
 export const WeekCalendar = () => {
 	var { user_id } = useParams();

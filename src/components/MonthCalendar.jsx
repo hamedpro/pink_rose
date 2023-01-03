@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { get_tasks } from "../../api/client";
-import { custom_range } from "../common";
+import { custom_range } from "../../common_helpers.js";
 import "./MonthCalendarStyles.css";
-import { month_names, day_names ,get_months_days_count} from "../common";
+import { month_names, day_names ,get_months_days_count} from "../../common_helpers.js";
 export const MonthCalendar = ({ }) => {
 	var nav = useNavigate()
 	var [query_params,set_query_params] = useSearchParams()

@@ -40,13 +40,11 @@ const CommentSBox = ({ urlParams }) => {
         setEditId("");
         getCommentsHandler();
       } else {
-        const newCommentData = {
+        await new_comment({
           date: new Date().getTime(),
           text: inputComment,
-          user_id,
-        };
-        newCommentData[lastUrlParamKey] = urlParams[lastUrlParamKey];
-        await new_comment(newCommentData);
+          ...urlParams
+        });
         getCommentsHandler();
       }
       setInputComment("");

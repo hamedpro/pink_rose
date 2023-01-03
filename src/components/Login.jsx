@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, custom_axios, flexible_user_finder, send_verification_code } from "../../api/client";
-import { setCookie } from "../common";
+import { setCookie } from "../../common_helpers.js";
+import { Section } from "./section";
+import { StyledInput } from "./styled_elements";
 
-function dgebi(id) {
-	//just a shorthand
-	return document.getElementById(id).value;
-}
 function SelectUser({ set_user, set_current_tab }) {
 	var [identity, set_identity] = useState(null);
 	async function find_user() {
@@ -22,29 +20,38 @@ function SelectUser({ set_user, set_current_tab }) {
 		}
 	}
 	return (
-		<>
-			<p>enter either one of these : email address or mobile or username or user_id</p>
-			<input onChange={(event) => set_identity(event.target.value)} />
+		<Section title="login page">
+			<p>please enter either one of these and click "find my account" :</p>
+			<ul>
+				<li>an email_address</li>
+				<li>a mobile phone number</li>
+				<li>a username</li>
+				<li>a user_id</li>
+			</ul>
+			<input
+				className="border border-blue-400 px-2 rounded mx-2"
+				onChange={(event) => set_identity(event.target.value)}
+			/>
 			<button onClick={find_user}>find my account</button>
-		</>
+		</Section>
 	);
 }
 function SelectAuthType({ set_current_tab }) {
 	return (
-		<>
-			<p>select one of these authentication</p>
-			<button onClick={() => set_current_tab("send_verf_code")}>
+		<Section title="authentication methods">
+			<p>select one of these authentication methods :</p>
+			<button className="border border-blue-400 rounded px-2 mb-1" onClick={() => set_current_tab("send_verf_code")}>
 				send me verification code
 			</button>
 			<br />
-			<button onClick={() => set_current_tab("check_password")}>
+			<button className="border border-blue-400 rounded px-2 mb-1" onClick={() => set_current_tab("check_password")}>
 				login using my password
 			</button>
-		</>
+		</Section>
 	);
 }
 function CheckPassword({ user, set_current_tab }) {
-	var custom_nav = useNavigate()
+	var custom_nav = useNavigate();
 	var [password, set_password] = useState(null);
 	async function password_based_login() {
 		try {
@@ -54,11 +61,7 @@ function CheckPassword({ user, set_current_tab }) {
 			});
 			if (response === true) {
 				alert("auth was performed!");
-				setCookie(
-					"identity",
-					JSON.stringify({user_id : user._id }),
-					2
-				);
+				setCookie("identity", JSON.stringify({ user_id: user._id }), 2);
 				custom_nav("/");
 			} else {
 				alert("your password was wrong. please check it and try again");
@@ -106,12 +109,12 @@ function SendVerfCode({ user, set_current_tab }) {
 				kind,
 				user_id: user._id,
 			});
-			set_current_tab('check_verf_code')
+			set_current_tab("check_verf_code");
 		}
 	}
 	return (
 		<>
-			<p>select which of this options below</p>
+			<p>select one of this options below</p>
 			<button onClick={() => send_verf_code("mobile")}>send through sms</button>
 			<br />
 			<button onClick={() => send_verf_code("email_address")}>
@@ -121,7 +124,7 @@ function SendVerfCode({ user, set_current_tab }) {
 	);
 }
 function CheckVerfCode({ user, set_current_tab }) {
-	var custom_nav = useNavigate()
+	var custom_nav = useNavigate();
 	var [verf_code, set_verf_code] = useState(null);
 	async function check_verification_code() {
 		if (isNaN(Number(verf_code))) {
@@ -137,11 +140,7 @@ function CheckVerfCode({ user, set_current_tab }) {
 			});
 			if (response === true) {
 				alert("auth was performed!");
-				setCookie(
-					"identity",
-					JSON.stringify({user_id : user._id }),
-					2
-				);
+				setCookie("identity", JSON.stringify({ user_id: user._id }), 2);
 				custom_nav("/");
 			} else {
 				alert("verification code was not correct. please try checking what you have typed");
@@ -156,7 +155,7 @@ function CheckVerfCode({ user, set_current_tab }) {
 	return (
 		<>
 			<p>enter verification code :</p>
-			<input onChange={(event) => set_verf_code(event.target.value)} />
+			<StyledInput  onChange={(event) => set_verf_code(event.target.value)} /> 
 			<button onClick={check_verification_code}>check verification code </button>
 		</>
 	);

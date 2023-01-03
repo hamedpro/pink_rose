@@ -1,6 +1,4 @@
-import { Edit, InfoOutlined, Person } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { gen_link_to_file } from "../common";
 export function ImageRow({ items= [],title,images =[], className = "",onClick= ()=>{} }) {
 	var nav = useNavigate()
 	return (
