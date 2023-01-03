@@ -1,19 +1,13 @@
-require("dotenv").config();
-var {
-	hash_sha_256_hex,
-	build_pyramid,
-	gen_verification_code,
-	is_there_any_conflict,
-} = require("./common.cjs");
-var express = require("express");
-var os = require("os");
-var cookieParser = require("cookie-parser");
-var cors = require("cors");
-var fs = require("fs");
-var formidable = require("formidable");
+import {gen_verification_code} from "../common_helpers.js"
+import express from "express"
+import cookieParser from "cookie-parser"
+import cors from "cors"
+import fs from "fs"
+import formidable from "formidable"
 //app.use(express.static("./uploaded/"));
-var path = require("path");
-var { MongoClient, ObjectId } = require("mongodb");
+import path from "path"
+import { MongoClient, ObjectId } from "mongodb"
+import { is_there_any_conflict } from "../common_helpers.js"
 const url = "mongodb://127.0.0.1:27017";
 const client = new MongoClient(url);
 var { frontend_port, api_port, api_endpoint, db_name } = JSON.parse(

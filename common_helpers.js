@@ -1,3 +1,74 @@
+export function is_there_any_conflict({ start, end, items }) {
+	//what it does : it checks whether there is any conflicts between that range and any of those items or not
+	//items is an array of items that contain start_date and end_date (both are unix timestamps)
+	//range is an object of 2 unix timestamps : {start : number,end : number}
+	//todo instead of working on items, deep clone it first and work on that becuse may that change while filtering
+	return (
+		/* todo make sure about this function 
+		(conflict_situations are completely tested) */
+		/* note if end of one task or event is equal to 
+		start of the next one we do not consider it as a conflict 
+		(todo make sure this rule is respected everywhere)*/
+		items.filter((item) => {
+			var item_start = item.start_date;
+			var item_end = item.end_date;
+			var possible_conflicts = [
+				/* 	these are situations that if an
+					item has we undertand that it has
+					conflict with that range
+					first item of each of these is related to start_date of item
+					and second item is related to end_date of item
+					so ["before", "in"] means start_date of item is smaller than start of range
+					and also that "in" means (range_start < end_date < range_end) 
+
+					** help understanding :
+					each range is imagined like this : before---start---in---end---after
+				  	and each item_start or item_end is either in one of these 5 places
+				*/
+				{
+					situation: ["before", "in"],
+					bool: item_start < start && start < item_end && item_end < end,
+				},
+				{ situation: ["before", "end"], bool: item_start < start && item_end === end },
+				{ situation: ["before", "after"], bool: item_start < start && item_end > end },
+				{
+					situation: ["start", "in"],
+					bool: item_start === start && start < item_end && item_end < end,
+				},
+				{ situation: ["start", "end"], bool: item_start === start && item_end === end },
+				{ situation: ["start", "after"], bool: item_start === start && item_end > end },
+				{
+					situation: ["in", "in"],
+					bool:
+						start < item_start &&
+						item_start < end &&
+						start < item_end &&
+						item_end < end,
+				},
+				{
+					situation: ["in", "end"],
+					bool: start < item_start && item_start < end && item_end === end,
+				},
+				{
+					situation: ["in", "after"],
+					bool: start < item_start && item_start < end && item_end > end,
+				},
+			];
+			var conflicts = possible_conflicts.filter((i) => i.bool);
+			if (conflicts.length !== 0) {
+				//console.log(JSON.stringify({ item, situation: conflicts.map(i => i.situation) }))
+				return true;
+			} else {
+				return false;
+			}
+		}).length !== 0
+	);
+}
+
+export function gen_verification_code() {
+	return Math.floor(100000 + Math.random() * 900000);
+}
+
 export function toHHMMSS(seconds) {
 	var sec_num = parseInt(seconds, 10);
 	var hours = Math.floor(sec_num / 3600);
@@ -182,19 +253,36 @@ export var day_names = [
 export function get_months_days_count(year) {
 	return [31, year % 4 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 }
-export function timestamp_filled_range({ start, end, items }) {
-	let result = [...items]
-	result = result.sort((i1, i2) => i2.start_date - i1.end_date).filter(i => i.end_date > start && i.start_date < end)
-	if(result.length === 0) return [{value : null , start_date : start,end_date : end}]
-	if (result[0].start_date < start) {
-		result[0].start_date = start;
-	} else if (result[0].start_date > start) {
-		result.unshift({ value: null, start_date: start, end_date: result[0].start_date });
+export function timestamp_filled_range({ start, end, items}) {
+	let result = [
+		...items.map((i) => {
+			return { ...i };
+		}),
+	];
+	result = result
+		.sort((i1, i2) => i1.start_date - i2.start_date)
+		.filter((i) => is_there_any_conflict({ items: [i], start, end }));
+	if (result.length === 0) {
+		result = [{ value: null, start_date: start, end_date: end ,start_percent : 0,end_percent : 100}]
+		return result;
 	}
-	if (result[result.length - 1].end_date > end) {
-		result[result.length - 1].end_date = end;
-	} else if (result[result.length - 1].end_date < end) {
-		result.push({ value: null, start_date: result[result.length - 1].end_date, end_date: end });
+	if (result[0].start_date !== start) {
+		if (result[0].start_date < start) {
+			result[0].start_date = start;
+		} else {
+			result.unshift({ value: null, start_date: start, end_date: result[0].start_date });
+		}
+	}
+	if (result[result.length - 1].end_date !== end) {
+		if (result[result.length - 1].end_date > end) {
+			result[result.length - 1].end_date = end;
+		} else {
+			result.push({
+				value: null,
+				start_date: result[result.length - 1].end_date,
+				end_date: end,
+			});
+		}
 	}
 	while (true) {
 		let index_to_fill = null;

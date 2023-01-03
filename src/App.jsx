@@ -3,7 +3,7 @@ import "./App.css";
 import "./output.css";
 import { Routes, Route, useLocation, Link, useParams } from "react-router-dom";
 //import {} from "./components";
-import { month_names, multi_lang_helper as ml } from "./common";
+import { month_names, multi_lang_helper as ml } from "../common_helpers.js";
 import { Login } from "./components/Login";
 import { RegisterPage } from "./components/register_page";
 import { WorkspacePage } from "./components/workspace_page";
@@ -36,6 +36,8 @@ import {
 import UserProfile from "./components/UserProfile";
 import { UserSettings } from "./components/UserSettings";
 import { NewEvent } from "./components/NewEvent";
+import { Events } from "./components/Events";
+import { Event } from "./components/Event";
 function TopBar() {
 	var { user_id } = useParams();
 	return (
@@ -165,21 +167,26 @@ function Wrapper() {
 								element={<MonthCalendar timestamp={new Date().getTime()} />}
 							/>
 							<Route
-								path="new-event"
+								path="events"
+								element={<Events timestamp={new Date().getTime()} />}
+							/>
+							<Route
+								path="events/new"
 								element={<NewEvent timestamp={new Date().getTime()} />}
 							/>
-
+							<Route
+								path="events/:event_id"
+								element={<Event timestamp={new Date().getTime()} />}
+							/>
 							{/* todo : test all calendar sub routes */}
 							<Route
 								path="week"
 								element={<WeekCalendar timestamp={new Date().getTime()} />}
 							/>
-							{/* todo : test it */}
 							<Route
 								path="day"
 								element={<DayCalendar timestamp={new Date().getTime()} />}
 							/>
-							{/* todo : test it */}
 						</Route>
 					</Routes>
 				</div>
