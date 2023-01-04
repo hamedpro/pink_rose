@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { TextField } from "@mui/material";
 //import AdapterMoment from "@date-io/jalaali";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import {
+	custom_get_collection,
 	get_calendar_categories,
-	get_user_notes,
+	get_users,
 	new_calendar_category,
 	new_task,
 } from "../../api/client";
@@ -15,7 +16,11 @@ import Select from "react-select";
 //TODO: component re-renders
 export const NewTask = () => {
 	var nav = useNavigate();
-	var { user_id, workspace_id, workflow_id } = useParams();
+	var [search_params, set_search_params] = useSearchParams();
+	var workspace_id = search_params.get("workspace_id");
+	var workflow_id = search_params.get("workflow_id");
+
+	var user_id = localStorage.getItem("user_id");
 	const [notes, setNotes] = useState(null);
 	const [selectedNotes, selectNotes] = useState([]);
 	const [title_input, set_title_input] = useState();
@@ -25,18 +30,24 @@ export const NewTask = () => {
 		end: null,
 		start: null,
 	});
+	var [all_users, set_all_users] = useState(null);
 
 	async function get_data() {
-		setNotes(await get_user_notes({ creator_user_id: user_id }));
+		setNotes(await custom_get_collection({context : "notes",user_id}));
 		set_calendar_categories(await get_calendar_categories({ user_id }));
+		set_all_users(await get_users({ filters: {} }));
 	}
+	var [selected_collaborators, set_selected_collaborators] = useState([]);
 	useEffect(() => {
 		get_data();
 	}, []);
 	async function submit_new_task() {
+		var collaborators = selected_collaborators.map((i) => {
+			return { access_level: 1, user_id: i.value };
+		});
+		collaborators.push({ access_level: 3, user_id });
 		try {
-			var tmp = {
-				creator_user_id: user_id,
+			var result = await new_task({
 				workflow_id,
 				end_date: selected_dates.end,
 				start_date: selected_dates.start,
@@ -44,16 +55,14 @@ export const NewTask = () => {
 				workspace_id,
 				title: title_input,
 				category_id: selected_calendar_category.value._id,
-			};
-			var result = await new_task(tmp);
+				collaborators,
+			});
 			if (result.has_error) {
 				alert("Error! : " + result.error);
 			} else {
 				var id_of_new_task = result;
 				alert("all done. navigating to the newly created task's page");
-				nav(
-					`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow_id}/tasks/${id_of_new_task}`
-				);
+				nav(`/dashboard/tasks/${id_of_new_task}`);
 			}
 		} catch (error) {
 			console.log(error);
@@ -61,7 +70,8 @@ export const NewTask = () => {
 		}
 	}
 	var [selected_calendar_category, select_calendar_category] = useState(null);
-	if (notes === null || calendar_categories === null) return <h1>still loading data ...</h1>;
+	if (all_users === null || notes === null || calendar_categories === null)
+		return <h1>still loading data ...</h1>;
 	return (
 		<div className="p-2">
 			<h1>NewTask</h1>
@@ -141,6 +151,21 @@ export const NewTask = () => {
 					</div>
 				);
 			})}
+			<h1>choose collaborators of this new workspace :</h1>
+			<Select
+				onChange={set_selected_collaborators}
+				value={selected_collaborators}
+				options={[
+					...all_users.filter(user => user._id !== user_id).map((user) => {
+						return {
+							value: user._id,
+							label: `@${user.username}`,
+						};
+					}),
+				]}
+				isMulti
+				isSearchable
+			/>
 			<button onClick={submit_new_task}>submit</button>
 		</div>
 	);

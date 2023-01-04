@@ -9,9 +9,9 @@ import {
 import { Section } from "./section";
 export const VerifyIdentity = () => {
 	var nav = useNavigate();
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var [user, set_user] = useState(null);
-	var callback_url = `/users/${user_id}`;
+	var callback_url = `/dashboard`;
 	var [check_verification_code_mode, set_check_verification_code_mode] = useState(false);
 	var [selected_kind_of_verification, set_selected_kind_of_verification] = useState(null); //possible values for this : email_address , mobile
 	async function send_verification_code() {

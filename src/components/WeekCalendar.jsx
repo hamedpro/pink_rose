@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { custom_get_collection } from "../../api/client.js";
 import { get_start_and_end } from "../../common_helpers.js";
 
 export const WeekCalendar = () => {
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var [searchParams, setSearchParams] = useSearchParams();
 	var timestamp = searchParams.has("timestamp")
 		? // the week will be considered from the start point of the first sunday before the timestamp until 7*24*3600*1000 milli seconds later
@@ -12,10 +13,9 @@ export const WeekCalendar = () => {
 	var [filtered_tasks, set_filtered_tasks] = useState(null);
 	var { start, end } = get_start_and_end(timestamp, "week");
 	async function get_data() {
-		var tasks = await get_tasks({
-			filters: {
-				_id: user_id,
-			},
+		var tasks = await custom_get_collection({
+			context: "tasks",
+			user_id,
 		});
 		set_filtered_tasks(tasks.filter((task) => task.start_date > start && task.end_date < end));
 	}

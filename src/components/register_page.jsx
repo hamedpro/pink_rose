@@ -30,7 +30,7 @@ export const RegisterPage = ({}) => {
 			var id_of_new_user = await new_user({ body: tmp });
 			alert("all done. navigating to verification page ...");
 			nav(
-				`/users/${id_of_new_user}/verification?next_page=complete_register&user_id=${id_of_new_user}&kind_of_input=${kind_of_input}`
+				`/dashboard/verification?next_page=complete_register&user_id=${id_of_new_user}&kind_of_input=${kind_of_input}`
 			);
 		} catch (error) {
 			//todo

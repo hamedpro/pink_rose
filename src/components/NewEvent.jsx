@@ -8,49 +8,50 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useEffect } from "react";
 import {
 	get_calendar_categories,
-	get_user_notes,
 	new_calendar_category,
-	new_task,
 } from "../../api/client";
 import Select from "react-select";
-import { useParams } from "react-router-dom";
 export const NewEvent = () => {
-    var {workflow_id,workspace_id,user_id} = useParams()
-    async function get_data() {
-        set_calendar_categories(await get_calendar_categories({ user_id }));
-    }
-    var [selected_calendar_category, select_calendar_category] = useState(null);
+	var user_id = localStorage.getItem("user_id");
+	async function get_data() {
+		set_calendar_categories(await get_calendar_categories({ user_id }));
+	}
+	var [selected_calendar_category, select_calendar_category] = useState(null);
 
-    var submit_new_event = async () => {
-        var result = await new_event({
-            end_date: selected_dates.end,
-            start_date: selected_dates.start,
-            workflow_id,
-            workspace_id,
-            category_id: selected_calendar_category.value._id,
-            ...input_values,
-            creator_user_id : user_id
-        })
+	var submit_new_event = async () => {
+		var result = await new_event({
+			end_date: selected_dates.end,
+			start_date: selected_dates.start,
+			workflow_id,
+			workspace_id,
+			category_id: selected_calendar_category.value._id,
+			...input_values,
+			user_id,
+		});
 		if (result.has_error) {
-			alert("Error! : " + result.error)
+			alert("Error! : " + result.error);
 		} else {
-			alert('done')
+			alert("done");
 		}
-    }
-    var [input_values, set_input_values] = useState({
-        title : null
-    })
-    const [calendar_categories, set_calendar_categories] = useState(null);
-    var [selected_dates, set_selected_dates] = useState({ end: null, start: null })
-    useEffect(() => {
-        get_data()
-    }, [])
-    if (calendar_categories === null) return <h1>still loading data ...</h1>;
+	};
+	var [input_values, set_input_values] = useState({
+		title: null,
+	});
+	const [calendar_categories, set_calendar_categories] = useState(null);
+	var [selected_dates, set_selected_dates] = useState({ end: null, start: null });
+	useEffect(() => {
+		get_data();
+	}, []);
+	if (calendar_categories === null) return <h1>still loading data ...</h1>;
 	return (
 		<div>
-            <h1>NewEvent</h1>
-            <input onChange={(event)=>{set_input_values({title :event.target.value })}} />
-            <h2>select an existing calendar category or create a new one</h2>
+			<h1>NewEvent</h1>
+			<input
+				onChange={(event) => {
+					set_input_values({ title: event.target.value });
+				}}
+			/>
+			<h2>select an existing calendar category or create a new one</h2>
 			<Select
 				onChange={select_calendar_category}
 				value={selected_calendar_category}
@@ -78,13 +79,15 @@ export const NewEvent = () => {
 						name: document.getElementById("new_calendar_category_name_input").value,
 						color: document.getElementById("new_calendar_category_color_input").value,
 					});
-					alert('new calendar category was added to your profile successfuly.above options will be updated. please select it')
-					get_data()
+					alert(
+						"new calendar category was added to your profile successfuly.above options will be updated. please select it"
+					);
+					get_data();
 				}}
 			>
 				create a new category
 			</button>
-            <h2>select 'start' and 'end' dates for this task : </h2>
+			<h2>select 'start' and 'end' dates for this task : </h2>
 			{["start", "end"].map((type, index) => {
 				return (
 					<div key={index} className="mb-3 block">
@@ -93,8 +96,8 @@ export const NewEvent = () => {
 								renderInput={(props) => <TextField {...props} />}
 								label={`select task ${type} date`}
 								value={selected_dates[type]}
-                                onChange={(newValue) => {
-                                    set_selected_dates((prev_dates) => {
+								onChange={(newValue) => {
+									set_selected_dates((prev_dates) => {
 										var tmp = { ...prev_dates };
 										tmp[type] = newValue.$d.getTime();
 										return tmp;
@@ -104,8 +107,8 @@ export const NewEvent = () => {
 						</LocalizationProvider>
 					</div>
 				);
-            })}
-            <button onClick={submit_new_event}>submit this event</button>
+			})}
+			<button onClick={submit_new_event}>submit this event</button>
 		</div>
 	);
 };

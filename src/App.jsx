@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
 import "./output.css";
 import { Routes, Route, useLocation, Link, useParams } from "react-router-dom";
-//import {} from "./components";
 import { month_names, multi_lang_helper as ml } from "../common_helpers.js";
 import { Login } from "./components/Login";
 import { RegisterPage } from "./components/register_page";
@@ -20,12 +19,10 @@ import { NewTask } from "./components/NewTask";
 import { Terms } from "./components/Terms";
 import { VerifyIdentity } from "./components/VerifyIdentity";
 import { MonthCalendar } from "./components/MonthCalendar.jsx";
-import { WeekCalendar } from "./components/WeekCalendar";
 import { DayCalendar } from "./components/DayCalendar";
 import { Root } from "./components/Root.jsx";
 import { PrimarySideBar } from "./components/PrimarySideBar";
 import { NewResource } from "./components/NewResource";
-import { Resources } from "./components/Resources";
 import {
 	CalendarMonthRounded,
 	HomeOutlined,
@@ -38,21 +35,25 @@ import { UserSettings } from "./components/UserSettings";
 import { NewEvent } from "./components/NewEvent";
 import { Events } from "./components/Events";
 import { Event } from "./components/Event";
+import { Resource } from "./components/Resource";
+import { useEffect } from "react";
+import { custom_get_collection, get_collection } from "../api/client";
+import { GlobalDataContext } from "./GlobalDataContext";
 function TopBar() {
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	return (
 		<div
 			className="w-full bg-blue-600 overflow-y-hidden flex items-center px-3 space-x-3"
 			style={{ height: "8%" }}
 		>
 			<div className="w-1/5">
-				<Link to={`/users/${user_id}/settings`}>
+				<Link to={`/dashboard/settings`}>
 					<Settings style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
-				<Link to={`/users/${user_id}/profile`}>
+				<Link to={`/users/${user_id}`}>
 					<Person2Outlined style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
-				<Link to={`/users/${user_id}/`}>
+				<Link to={`/dashboard/`}>
 					<HomeOutlined style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
 			</div>
@@ -61,11 +62,10 @@ function TopBar() {
 					<CalendarMonthRounded />
 					<div>
 						{new Date().getUTCFullYear()} /{" "}
-						<Link to={`/users/${user_id}/calendar/month`}>
+						<Link to={`/dashboard/calendar/month`}>
 							{month_names[new Date().getMonth()]}
 						</Link>{" "}
-						/{" "}
-						{<Link to={`/users/${user_id}/calendar/day`}>{new Date().getDate()}</Link>}
+						/ {<Link to={`/dashboard/calendar/day`}>{new Date().getDate()}</Link>}
 					</div>
 				</div>
 				<div className="flex items-center space-x-3 h-5/6 my-2 ">
@@ -88,104 +88,75 @@ function Wrapper() {
 				</div>
 				<div className="w-4/5 bg-blue-400 h-full overflow-y-auto h-9/10">
 					<Routes>
-						<Route
-							path=""
-							element={<UserDashboard timestamp={new Date().getTime()} />}
-						/>
-
-						<Route
-							path="profile"
-							element={<UserProfile timestamp={new Date().getTime()} />}
-						/>
-
+						<Route path="" element={<WorkspacesPage key={new Date().getTime()} />} />
 						<Route
 							path="settings"
-							element={<UserSettings timestamp={new Date().getTime()} />}
+							element={<UserSettings key={new Date().getTime()} />}
 						/>
-
 						<Route
 							path="verification"
-							element={<VerifyIdentity timestamp={new Date().getTime()} />}
+							element={<VerifyIdentity key={new Date().getTime()} />}
 						/>
 						<Route
 							path="workspaces"
-							element={<WorkspacesPage timestamp={new Date().getTime()} />}
+							element={<WorkspacesPage key={new Date().getTime()} />}
 						/>
 						<Route
 							path="workspaces/new"
-							element={<NewWorkspace timestamp={new Date().getTime()} />}
+							element={<NewWorkspace key={new Date().getTime()} />}
 						/>
 						<Route
 							path="workspaces/:workspace_id"
-							element={<WorkspacePage timestamp={new Date().getTime()} />}
+							element={<WorkspacePage key={new Date().getTime()} />}
 						/>
 						<Route
-							path="workspaces/:workspace_id/workflows/new"
-							element={<NewWorkflow timestamp={new Date().getTime()} />}
+							path="workflows/new"
+							element={<NewWorkflow key={new Date().getTime()} />}
 						/>
 						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id"
-							element={<Workflow timestamp={new Date().getTime()} />}
+							path="workflows/:workflow_id"
+							element={<Workflow key={new Date().getTime()} />}
 						/>
 						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/resources/new"
-							element={<NewResource timestamp={new Date().getTime()} />}
+							path="resources/new"
+							element={<NewResource key={new Date().getTime()} />}
+						/>
+						<Route
+							path="resources/:resource_id"
+							element={<Resource key={new Date().getTime()} />}
+						/>
+
+						<Route path="notes/new" element={<NewNote key={new Date().getTime()} />} />
+						<Route
+							path="notes/:note_id"
+							element={<Note key={new Date().getTime()} />}
+						/>
+						<Route path="tasks/new" element={<NewTask key={new Date().getTime()} />} />
+						<Route
+							path="tasks/:task_id"
+							element={<Task key={new Date().getTime()} />}
+						/>
+						<Route path="events" element={<Events key={new Date().getTime()} />} />
+						<Route
+							path="events/new"
+							element={<NewEvent key={new Date().getTime()} />}
 						/>
 
 						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/resources"
-							element={<Resources timestamp={new Date().getTime()} />}
-						/>
-						<Route
-							path="workspaces/:workspace_id/resources/new"
-							element={<NewResource timestamp={new Date().getTime()} />}
+							path="events/:event_id"
+							element={<Event key={new Date().getTime()} />}
 						/>
 
-						<Route
-							path="workspaces/:workspace_id/resources"
-							element={<Resources timestamp={new Date().getTime()} />}
-						/>
-						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/notes/new"
-							element={<NewNote timestamp={new Date().getTime()} />}
-						/>
-						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/notes/:note_id"
-							element={<Note timestamp={new Date().getTime()} />}
-						/>
-						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/tasks/new"
-							element={<NewTask timestamp={new Date().getTime()} />}
-						/>
-						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/tasks/:task_id"
-							element={<Task timestamp={new Date().getTime()} />}
-						/>
 						<Route path="calendar">
 							<Route
 								path="month"
-								element={<MonthCalendar timestamp={new Date().getTime()} />}
+								element={<MonthCalendar key={new Date().getTime()} />}
 							/>
-							<Route
-								path="events"
-								element={<Events timestamp={new Date().getTime()} />}
-							/>
-							<Route
-								path="events/new"
-								element={<NewEvent timestamp={new Date().getTime()} />}
-							/>
-							<Route
-								path="events/:event_id"
-								element={<Event timestamp={new Date().getTime()} />}
-							/>
+
 							{/* todo : test all calendar sub routes */}
 							<Route
-								path="week"
-								element={<WeekCalendar timestamp={new Date().getTime()} />}
-							/>
-							<Route
 								path="day"
-								element={<DayCalendar timestamp={new Date().getTime()} />}
+								element={<DayCalendar key={new Date().getTime()} />}
 							/>
 						</Route>
 					</Routes>
@@ -195,24 +166,66 @@ function Wrapper() {
 	);
 }
 function App() {
+	var loc = useLocation();
 	window.ml = ml;
 	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite
-	var loc = useLocation();
+	var [global_data, set_global_data] = useState(null);
+	async function get_global_data() {
+		var user_id = localStorage.getItem("user_id");
+		var new_user_context_state = { user: {}, all: {} };
+		var tmp = ["workspaces", "workflows", "notes", "resources", "tasks"];
+		for (var i = 0; i < tmp.length; i++) {
+			new_user_context_state.all[tmp[i]] = await get_collection({
+				collection_name: tmp[i],
+				filters: {},
+			});
+			new_user_context_state.user[tmp[i]] =
+				user_id !== null ? await custom_get_collection({ context: tmp[i], user_id }) : null;
+		}
+
+		var tmp = ["events", "calendar_categories", "comments"];
+		for (var i = 0; i < tmp.length; i++) {
+			new_user_context_state.user[tmp[i]] =
+				user_id !== null
+					? await get_collection({
+							collection_name: tmp[i],
+							filters: { user_id },
+					  })
+					: null;
+			new_user_context_state.all[tmp[i]] = await get_collection({
+				collection_name: tmp[i],
+				filters: {},
+			});
+		}
+		new_user_context_state.all.users = await get_collection({
+			collection_name: "users",
+			filters: {},
+		});
+		set_global_data(new_user_context_state);
+	}
+	useEffect(() => {
+		get_global_data();
+	}, [loc]);
+	if (global_data === null) return <h1>loading data ...</h1>;
 	return (
-		<Routes>
-			<Route path="/" element={<Root timestamp={new Date().getTime()} />} />
-			<Route path="/login" element={<Login timestamp={new Date().getTime()} />} />
-			<Route path="/register" element={<RegisterPage timestamp={new Date().getTime()} />} />
-			<Route path="/terms" element={<Terms timestamp={new Date().getTime()} />} />
-			<Route
-				path="subscribtion"
-				element={<SubscribtionPage timestamp={new Date().getTime()} />}
-			/>
-			<Route
-				path="/users/:user_id/*"
-				element={<Wrapper timestamp={new Date().getTime()} />}
-			></Route>
-		</Routes>
+		<GlobalDataContext.Provider value={{ global_data, get_global_data }}>
+			<Routes>
+				<Route path="/" element={<Root key={new Date().getTime()} />} />
+				<Route path="/login" element={<Login key={new Date().getTime()} />} />
+				<Route path="/register" element={<RegisterPage key={new Date().getTime()} />} />
+				<Route path="/terms" element={<Terms key={new Date().getTime()} />} />
+				<Route
+					path="/subscribtion"
+					element={<SubscribtionPage key={new Date().getTime()} />}
+				/>
+
+				<Route
+					path="/users/:user_id"
+					element={<UserProfile key={new Date().getTime()} />}
+				/>
+				<Route path="/dashboard/*" element={<Wrapper key={new Date().getTime()} />}></Route>
+			</Routes>
+		</GlobalDataContext.Provider>
 	);
 }
 

@@ -118,36 +118,6 @@ export function multi_lang_helper({ en, fa }) {
 	return lang === "fa" ? fa : en;
 }
 
-export function getUserPrivilege() {
-	return new Promise((resolve, reject) => {
-		var localStorageUsername = window.localStorage.getItem("username");
-		if (localStorageUsername === null) {
-			resolve({
-				username: null,
-				is_admin: null,
-			});
-		} else {
-			customAjax({
-				params: {
-					task_name: "get_users",
-				},
-			}).then(
-				(data) => {
-					var users = data.result;
-					resolve({
-						username: localStorageUsername,
-						is_admin:
-							users.find((user) => user.username == localStorageUsername).is_admin ===
-							"true",
-					});
-				},
-				(error) => {
-					reject(error);
-				}
-			);
-		}
-	});
-}
 //todo do detecting if access is denied or not server side
 export function shuffle(array) {
 	let currentIndex = array.length,
@@ -312,3 +282,16 @@ export function timestamp_filled_range({ start, end, items}) {
 	});
 	return result;
 }
+export function sum_array(array){
+	var total = 0;
+	array.forEach(number => {
+		total += number
+	})
+	return total
+}
+export var check_being_collaborator = (item, user_id) =>
+	item.collaborators.map((collaborator) => collaborator.user_id).includes(user_id);
+
+export var unique_items_of_array = (
+	array // it may not work for array containing anything other than numbers or string
+) => array.filter((i, index) => array.indexOf(i) === index);

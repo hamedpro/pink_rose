@@ -10,7 +10,7 @@ export const UserSettings = () => {
 		full_name: false,
 		username: false,
 	});
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var [user, set_user] = useState(null);
 	async function get_data() {
 		set_user((await get_users({ filters: { _id: user_id } }))[0]);

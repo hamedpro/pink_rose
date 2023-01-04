@@ -5,13 +5,12 @@ import { get_collection } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 
 export const Events = () => {
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var [events, set_events] = useState(null);
 	async function get_data() {
 		var events = await get_collection({
 			collection_name: "events",
-			filters: {
-				creator_user_id: user_id,
+			filters: {user_id,
 			},
 		});
 		set_events(events);

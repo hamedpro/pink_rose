@@ -1,9 +1,17 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import {} from "../../api/client";
+import React, { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Section } from "./section";
 
 export const Root = () => {
+	var nav = useNavigate()
+	useEffect(() => {
+		if (localStorage.getItem('user_id') !== null) { 
+				nav('/dashboard')	
+		}
+	},[])
+	if (localStorage.getItem('user_id') !== null) {
+		return <h1>navigating to user dashboard ...</h1>
+	}
 	return (
 		<>
 			<h1>here is root route of the website</h1>

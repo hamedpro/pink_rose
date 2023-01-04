@@ -3,3 +3,16 @@ consider that you may save value of new Date().getTime() and in the future users
 use utc timestamps everywhere saving or processing a date and just use local date in showing step and say it exactly
 take care about this in future cases : that if route change for ex from /users/:34234 to /users/:44444 the rendered component will not re render and this is handled by passing a timestamp as prop to the route element
 add env.json to gitignore when it starts to have personal important env vars
+currently there is an active account registered in my machine : username : 'hamedpro', password : "hamed"
+
+-------
+todo : solve this problem : 
+currently when user is not logged in but opens
+/dashboard when it wants to load data to show in primary side bar it gets user_id from
+localStorage but it returns null and when getting for example users it's filter
+will look like this : {user_id : null } and when it passes it to JSON.stringify
+before sending it to server all fields with value == null disapper and it leads
+it to load all_users or all data ... 
+-------
+
+todo just update keys of Route s when there is a change in url (it will avoid extra re-renders)

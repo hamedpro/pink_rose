@@ -29,45 +29,65 @@ export async function custom_axios({
 
 	return response.data;
 }
-
-// new user : it writes the entire body as a new document in db
-//this is just a example
-//returns json stringified of id of inserted document
-//test status : passed
-export var new_user = async ({ body }) =>
-	await custom_axios({
-		task: "new_user",
-		body: body,
-	});
-
-//returns json stringified of all users
-//if body.filters is defined it will be passed to find method of mongo db
-//test status : passed
-export var get_users = async ({ filters = {} }) =>
-	await custom_axios({
-		task: "get_users",
+export var get_collection = ({ collection_name, filters }) =>
+	custom_axios({
+		task: "get_collection",
 		body: {
+			collection_name,
 			filters,
 		},
 	});
-
-//returns result of mongo db deleteOne method as stringified json
-// deletes single document which belongs to that user from users collection
-export var delete_user = async ({ user_id }) =>
-	await custom_axios({
-		task: "delete_user",
+export var custom_get_collection = ({ context, user_id }) =>
+	custom_axios({
+		task: "custom_get_collection",
 		body: {
+			context,
 			user_id,
 		},
 	});
+export var delete_document = ({ collection_name, filters }) =>
+	custom_axios({
+		task: "delete_document",
+		body: {
+			filters,
+			collection_name,
+		},
+	});
+export var new_document = ({ collection_name, document }) =>
+	custom_axios({
+		task: "new_document",
+		body: {
+			collection_name,
+			document,
+		},
+	});
+export var update_document = ({ collection, update_filter, update_set }) =>
+	custom_axios({
+		task: "update_document",
+		body: {
+			collection,
+			update_filter,
+			update_set,
+		},
+	});
 
-//about args : user_id is necessary but only one of verf_code or password should be !undefined
-//returns a json stringified boolean which indicates that user auth was done or not
-//extra description : if password is included it checks user password with included one
-//and if verf_code is there it will check it with the latest verf_code of that user (if present) in verf_codes collection
+export var new_user = ({ body }) => new_document({ collection_name: "users", document: body });
 
-//important todo think about if user's password is null and we pass null to this func too
+export var get_users = ({ filters = {} }) => get_collection({ collection_name: "users", filters });
+
+export var delete_user = ({ user_id }) =>
+	delete_document({
+		collection_name: "users",
+		filters: {
+			_id: user_id,
+		},
+	});
 export var auth = async ({ user_id, password = undefined, verf_code = undefined }) =>
+	//about args : user_id is necessary but only one of verf_code or password should be !undefined
+	//returns a json stringified boolean which indicates that user auth was done or not
+	//extra description : if password is included it checks user password with included one
+	//and if verf_code is there it will check it with the latest verf_code of that user (if present) in verf_codes collection
+	//important todo think about if user's password is null and we pass null to this func too
 	await custom_axios({
 		task: "auth",
 		body: {
@@ -77,10 +97,10 @@ export var auth = async ({ user_id, password = undefined, verf_code = undefined 
 		},
 	});
 
-//body should contain user_id and also kind that should be either "mobile" or "email_address"
-//if this function doesnt throw anything its done
-//test status : passed
 export var send_verification_code = async ({ kind, user_id }) =>
+	//body should contain user_id and also kind that should be either "mobile" or "email_address"
+	//if this function doesnt throw anything its done
+	//test status : passed
 	await custom_axios({
 		task: "send_verification_code",
 		body: {
@@ -88,186 +108,113 @@ export var send_verification_code = async ({ kind, user_id }) =>
 			user_id,
 		},
 	});
-
-//inserts a new document in notes collection
-//returns json : id of inserted document (new inserted note )
-//test status : passed
-export var new_note = async ({ creator_user_id, title, workflow_id, workspace_id }) =>
-	await custom_axios({
-		body: {
-			creator_user_id,
+export var new_note = ({ collaborators, title, workflow_id, workspace_id }) =>
+	new_document({
+		collection_name: "notes",
+		document: {
+			collaborators,
 			title,
 			init_date: new Date().getTime(),
 			workflow_id,
 			workspace_id,
 		},
-		task: "new_note",
 	});
-
-//returns json : array of notes
-export var get_user_notes = async ({ creator_user_id }) =>
-	await custom_axios({
-		body: {
-			creator_user_id,
-		},
-		task: "get_user_notes",
-	});
-
-//returns json : id of inserted workspace
-//test status : passed
-export var new_workspace = async ({ title, description, collaborators = [], creator_user_id }) =>
-	await custom_axios({
-		task: "new_workspace",
-		body: {
+export var new_workspace = async ({ title, description, collaborators }) =>
+	new_document({
+		collection_name: "workspaces",
+		document: {
 			init_date: new Date().getTime(),
 			title,
 			description,
 			collaborators,
-			creator_user_id,
 		},
 	});
-
-// test_status : passed
-export var get_user_workspaces = async ({ creator_user_id }) =>
-	await custom_axios({
-		body: {
-			creator_user_id,
-		},
-		task: "get_user_workspaces",
-	});
-
-//returns id of inserted row
-export var new_task = async ({
+export var new_task = ({
 	linked_notes,
 	end_date,
 	workflow_id,
-	creator_user_id,
+	collaborators,
 	workspace_id,
 	start_date,
 	title,
 	category_id,
 }) =>
-	await custom_axios({
-		task: "new_task",
-		body: {
+	new_document({
+		collection_name: "tasks",
+		document: {
 			init_date: new Date().getTime(),
 			linked_notes,
 			end_date,
 			workflow_id,
-			creator_user_id,
+			collaborators,
 			workspace_id,
 			start_date,
 			title,
 			category_id,
 		},
 	});
-//returns id of new inserted document
-export var new_calendar_category = async ({ user_id, color, name }) => await custom_axios({
-	task: "new_document",
-	body: {
+export var new_calendar_category = ({ user_id, color, name }) =>
+	new_document({
 		collection_name: "calendar_categories",
 		document: {
-			user_id,color,name
-		}
-	}
-})
-export var new_document = async ({collection_name,document}) => await custom_axios({
-	task: "new_document",
-	body: {
-		collection_name,
-		document
-	}
-})
-//returns an array of calendar categories with the given user_id 
-export var get_calendar_categories = async ({ user_id }) => await custom_axios({
-	task: "get_collection",
-	body: {
-		collection_name: 'calendar_categories',
+			user_id,
+			color,
+			name,
+		},
+	});
+export var get_calendar_categories = ({ user_id }) =>
+	get_collection({
+		collection_name: "calendar_categories",
 		filters: {
-			user_id
-		}
-	}
-})
-export var get_collection = async ({collection_name,filters }) => await custom_axios({
-	task: "get_collection",
-	body: {
-		collection_name,
-		filters
-	}
-})
-export var get_user_events = async ({ user_id }) => await custom_axios({
-	task: "get_collection",
-	body: {
+			user_id,
+		},
+	});
+
+export var get_user_events = ({ user_id }) =>
+	get_collection({
 		collection_name: "events",
 		filters: {
-			creator_user_id : user_id
-		}
-	}
-})
-//returns the result of deleteOne method of mongodb 
-export var delete_task = async ({ task_id }) => await custom_axios({
-	task: "delete_document",
-	body: {
-		filters: {
-			_id : task_id 
+			user_id
 		},
-		collection_name : "tasks"
-	}
-})
-export var delete_document = async ({collection_name,filters}) => custom_axios({
-	task: "delete_document",
-	body: {
-		filters,
-		collection_name
-	}
-})
-//returns the result of deleteOne method of mongodb 
-export var delete_event = async ({ event_id }) => await custom_axios({
-	task: "delete_document",
-	body: {
+	});
+export var delete_task = ({ task_id }) =>
+	delete_document({
+		collection_name: "tasks",
 		filters: {
-			_id : event_id 
+			_id: task_id,
 		},
-		collection_name : "events"
-	}
-})
-
-
-//returns id of inserted row
-export var new_event = async ({
+	});
+export var delete_event = ({ event_id }) =>
+	delete_document({
+		filters: {
+			_id: event_id,
+		},
+		collection_name: "events",
+	});
+export var new_event = ({
 	end_date,
 	workflow_id,
-	creator_user_id,
+	user_id,
 	workspace_id,
 	start_date,
 	title,
 	category_id,
 }) =>
-	await custom_axios({
-		task: "new_event",
-		body: {
+	new_document({
+		collection_name: "events",
+		document: {
 			init_date: new Date().getTime(),
 			end_date,
 			workflow_id,
-			creator_user_id,
+			user_id,
 			workspace_id,
 			start_date,
 			title,
 			category_id,
 		},
 	});
-export var update_document = async ({ collection, update_filter, update_set }) =>
-	await custom_axios({
-		task: "update_document",
-		body: {
-			collection,
-			update_filter,
-			update_set,
-		},
-	});
 export var update_note = ({ note_id, update_set }) =>
 	update_document({
-		//todo make sure this kind of extending functions works well
 		collection: "notes",
 		update_filter: {
 			_id: note_id,
@@ -275,55 +222,44 @@ export var update_note = ({ note_id, update_set }) =>
 		update_set,
 	});
 //todo test from here to the bottom (in current commit)
-export var get_tasks = async ({ filters = {} }) =>
-	await custom_axios({
-		task: "get_tasks",
-		body: {
-			filters,
-		},
+export var get_tasks = ({ filters = {} }) =>
+	get_collection({
+		collection_name: "tasks",
+		filters,
 	});
-
-export var get_workspace_workflows = async ({ workspace_id }) =>
-	await custom_axios({
-		task: "get_workspace_workflows",
-		body: {
+export var get_workspace_workflows = ({ workspace_id }) =>
+	get_collection({
+		collection_name: "workflows",
+		filters: {
 			workspace_id,
 		},
 	});
-
-export var new_workflow = async ({
-	workspace_id,
-	creator_user_id,
-	title,
-	description,
-	collaborators = [],
-}) =>
-	await custom_axios({
-		task: "new_workflow",
-		body: {
+export var new_workflow = ({ workspace_id, title, description, collaborators }) =>
+	new_document({
+		collection_name: "workflows",
+		document: {
 			title,
 			description,
 			collaborators,
 			init_date: new Date().getTime(),
 			workspace_id,
-			creator_user_id,
 		},
 	});
-
-export var update_user = async ({ kind, new_value, user_id }) =>
-	await custom_axios({
-		task: "update_user",
-		body: {
-			kind,
-			new_value,
-			user_id,
+export var update_user = ({ kind, new_value, user_id }) => {
+	var update_set = {};
+	update_set[kind] = new_value;
+	return update_document({
+		collection: "users",
+		update_filter: {
+			_id : user_id,
 		},
+		update_set,
 	});
-
-//this one search for that value in all of these values : user_ids, usernames, email_addresses, mobiles
-//and returns that user which matches
+};
 
 export var flexible_user_finder = async ({ value }) =>
+	//this one search for that value in all of these values : user_ids, usernames, email_addresses, mobiles
+	//and returns that user which matches
 	await custom_axios({
 		task: "flexible_user_finder",
 		body: {
@@ -331,14 +267,11 @@ export var flexible_user_finder = async ({ value }) =>
 		},
 	});
 
-export var get_workflows = async ({ filters = {} }) =>
-	await custom_axios({
-		task: "get_workflows",
-		body: {
-			filters,
-		},
+export var get_workflows = ({ filters = {} }) =>
+	get_collection({
+		collection_name: "workflows",
+		filters,
 	});
-
 export var get_user_data_hierarchy = async ({ user_id }) =>
 	await custom_axios({
 		task: "get_user_data_hierarchy",
@@ -354,7 +287,6 @@ export var upload_files = async ({ task, data = {}, input_element_id }) => {
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i.toString()];
 		form.append(i.toString(), file);
-		console.log(file);
 		files_data[i.toString()] = {};
 		for (const prop in file) {
 			files_data[i.toString()][prop] = file[prop];
@@ -378,11 +310,9 @@ export var upload_new_resources = ({ data, input_element_id }) =>
 	});
 
 export var get_resources = ({ filters = {} }) =>
-	custom_axios({
-		task: "get_resources",
-		body: {
-			filters,
-		},
+	get_collection({
+		collection_name: "resources",
+		filters,
 	});
 export var custom_axios_download = async ({ url, file_name }) => {
 	var response = await axios({
@@ -414,28 +344,83 @@ export var download_resource = async ({ resource_id }) => {
 	});
 };
 
-export var new_comment = ({ date, text, user_id, workspace_id, workflow_id, note_id, task_id }) => new_document({
-	collection_name: "comments",
-	document: { date, text, user_id, workspace_id, workflow_id, note_id, task_id }
-})
+export var new_comment = ({ date, text, user_id, workspace_id, workflow_id, note_id, task_id }) =>
+	new_document({
+		collection_name: "comments",
+		document: { date, text, user_id, workspace_id, workflow_id, note_id, task_id },
+	});
 
-export var get_comments = ({ filters }) => get_collection({
-	collection_name: "comments",
-	filters
-})
+export var get_comments = ({ filters }) =>
+	get_collection({
+		collection_name: "comments",
+		filters,
+	});
 
-export var delete_comment = ({ filters }) => delete_document({
-	collection_name: "comments",
-	filters
-})
+export var delete_comment = ({ filters }) =>
+	delete_document({
+		collection_name: "comments",
+		filters,
+	});
 
-export var edit_comment = ({ new_text, comment_id }) => update_document({
-	collection: "comments",
-	update_filter: {
-		_id : comment_id
-	},
-	update_set: {
-		text: new_text,
-		edited : true
-	}
-})
+export var edit_comment = ({ new_text, comment_id }) =>
+	update_document({
+		collection: "comments",
+		update_filter: {
+			_id: comment_id,
+		},
+		update_set: {
+			text: new_text,
+			edited: true,
+		},
+	});
+export var modify_collaborator_access_level = async ({ context, id, user_id, new_access_level }) => { 
+		//how to work with it :
+		// when params are = context : "workspaces" , id : "foo" , user_id : 'bar' , new_access_level : 2 =>
+		//it search between collaborators of a workspace which it's id is foo and sets access level of that user who it's user_id is bar to 2
+		
+	var tmp = (await get_collection({ collection_name: context, filters: { _id: id } }))[0][
+		"collaborators"
+	];
+
+	var new_collaborators = tmp.map((i) => {
+		if (i.user_id === user_id) {
+			return { ...i, access_level: new_access_level};
+		} else {
+			return { ...i };
+		}
+	});
+	await update_document({
+		collection: context,
+		update_filter: {
+			_id : id
+		},
+		update_set: {
+			collaborators : new_collaborators 
+		}
+	})
+}
+export var leave_here = async ({ context_id, context, user_id }) => {
+	//how to use it : if a user with id = 'foo' wants to leave a
+	//workspace with id = 'bar' => context : "workspaces", context_id : 'bar' , user_id = 'foo'
+	var tmp = (await get_collection({ collection_name: context, filters: { _id: context_id } }))[0][
+		"collaborators"
+	];
+	await update_document({
+		collection: context,
+		update_filter: {
+			_id: context_id,
+		},
+		update_set: {
+			collaborators: tmp.filter((i) => i.user_id !== user_id),
+		},
+	});
+};
+
+export var custom_delete = async ({ context, id }) =>
+	await custom_axios({
+		body: {
+			context,
+			id,
+		},
+		task: "custom_delete",
+	});
